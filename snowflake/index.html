@@ -44,6 +44,7 @@
           let rect = element.getBoundingClientRect();
           let x = Math.floor((event.clientX-rect.left)/rect.width*4);
           let y = yOffset+Math.floor((rect.bottom-event.clientY)/rect.height*4);
+          currentSnow=[x,y];
           loadSnow([x,y]);
           document.getElementById("snow-container").scrollIntoView({behavior:"smooth"});
       }

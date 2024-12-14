@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {font-family:monospace;background:black;
+            color:rgba(140,174,242,0.5);text-shadow:0 0 4px rgba(140,174,242,0.5)}
+      h1 {font-weight:normal;font-size:2.5rem;text-align:center}
+      h2 {font-weight:normal;font-size:1.5rem;}
+      p,ol {color:rgba(209,222,249,0.6);text-shadow:none}
+      .snow {position: absolute; top:0; left:0;
+             width:100%;height:100%;aspect-ratio:1;opacity: 0.0}
+      @keyframes blink {
+          0%{opacity: 1.0; filter:brightness(1.2)};
+          20%{opacity: 0.6; filter:brightness(1.0)};
+          100%{opacity: 1.0}}
+      .blink {animation: 2s linear forwards blink}
+      .sexp {padding-left:8ch;text-indent:-4ch}
+    </style>
+    <script>
+      var currentSnow = [0,0];
+      const lengthExpr = ["(LIST 6.000000 2.295326 3.567426 2.144652 3.976619 0.269225 1.249025 3.154993 1.582923 1.035031 1.637534 3.222243)",
+                          "(LIST 6.000000 1.418997 1.347039 0.996067 3.868702 0.763772 0.194659 2.183346 3.662169 0.636652 0.798484 1.471473)",
+                          "(LIST 6.000000 1.798218 1.069519 1.159717 2.124227 0.686798 0.635615 0.223234 2.940886 2.812342 1.728150 1.679888)",
+                          "(LIST 6.000000 1.759389 2.789154 1.929381 3.548860 1.514986 1.542440 2.083326 3.635878 0.078960 0.671286 2.800810)",
+                          "(LIST 6.000000 2.573061 2.919415 0.586663 2.839638 2.354600 0.384794 0.505242 0.347309 2.264638 0.268643 1.315737)",
+                          "(LIST 6.000000 0.359829 0.689769 0.932345 3.894984 0.144041 2.712690 0.387860 0.413404 2.586962 1.915781 1.770335)",
+                          "(LIST 6.000000 2.138647 0.357877 0.695447 0.736512 0.195889 2.178591 0.022383 0.725824 0.473531 0.037018 3.262775)",
+                          "(LIST 6.000000 0.606320 1.847405 3.495830 1.941290 2.172958 1.069026 1.896843 0.011767 1.172395 0.114875 3.766598)"];
+      const branchExpr = [1.0,0.93,0.86,0.79];
+      function loadSnow(index){
+          let imgs = [];
+          for(let i = 0; i < 12; i++){
+              const img = document.createElement("img");
+              img.src= "s-" +index[0]+ "-" +index[1]+ "-" + i + "-t.png";
+              img.className = "snow blink";
+              img.style.animationDelay = (i+1)*0.1 + "s";
+              imgs.push(img);
+          }
+          document.getElementById("snow-container").replaceChildren(...imgs);
+          document.getElementById("branch-expr").textContent = ":BRANCH-SCALE " + branchExpr[index[0]] +")";
+          document.getElementById("length-expr").textContent = lengthExpr[index[1]];
+      }
+      function clickFig(event,element,yOffset){
+          let rect = element.getBoundingClientRect();
+          let x = Math.floor((event.clientX-rect.left)/rect.width*4);
+          let y = yOffset+Math.floor((rect.bottom-event.clientY)/rect.height*4);
+          loadSnow([x,y]);
+          document.getElementById("snow-container").scrollIntoView({behavior:"smooth"});
+      }
+    </script>
+  </head>
+  <body style="max-width:48rem;margin:auto">
+    <h1>Gallery of Algorithmic Snowflakes</h1>
+    <div style="display:flex;align-items:center;flex-wrap:wrap">
+      <img style="width:24rem;max-width:100%;flex:1 1 auto" src="fig1.png" onclick="clickFig(event,this,0)"/>
+      <img style="width:24rem;max-width:100%;flex:1 1 auto" src="fig2.png" onclick="clickFig(event,this,4)"/>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap">
+      <div id="snow-container" style="position:relative;width:32rem;aspect-ratio:1;flex:1 1 auto"
+           onclick="loadSnow(currentSnow)"></div>
+      <div id="caption"
+           style="font-size:1rem;padding:0 2rem;
+                  text-wrap:auto;width:12rem;flex:1 1 auto">
+        (SNOWFLAKE <div class="sexp">:LENGTH-LIST</div>
+        <div class="sexp" id="length-expr"></div>
+        <div class="sexp" id="branch-expr"></div></div>
+    </div>
+    <script>loadSnow(currentSnow)</script>
+    <div style="max-width:48rem;margin:auto">
+      <h2>What is this?</h2>
+      <p>This is my collection of snowflake-like patterns generated from a very simple algorithm.
+        The algorithm starts with an initial line segment with an open tip, then produces new line segments from two simple rules: </p>
+      <ol>
+        <li>Growth: At every iteration, grow three new line segments from every open tip. One of them is the main branch, which has the same orientation as the parent. The other two are the side branches, which turn left and right by pi/3. Each new line segment has an open tip and the open tip of the parent is closed.</li>
+        <li>Intersect: if any new line segment intersects with existing line segments, it is removed.</li>
+      </ol>
+      <p> Main branches grown at iteration N all have the same length, which is given by (NTH N LENGTH-LIST). The length of side branches are (* (NTH N LENGTH-LIST) (EXPT SCALE-FACTOR N)). </p>
+      <h2>Why are they snowflake-like?</h2>
+      <p> The Growth rule produces exponential proliferation of line segments, which are modulated by the Intersect rule. That's enough for complexity to arise. </p>
+      <p> Real snowflake growth keeps a history of atomspheric condition (temperature, humidity...) the snowflake has experienced. This gives rise to the saying "no two snowflakes ever look alike": their growth history are likely different. The Growth rule mirrors this with the discrete LENGTH-LIST, which can be thought of as the growth history of the algorithmic snowflake.</p>
+      <p> Real snowflake growth is also subject to a shadowing effect between the snowflake's branches (a variant of Diffusion Limited Aggregation). This is mirrored by the Intersect rule.</p>
+    </div>
+  </body>
+</html>

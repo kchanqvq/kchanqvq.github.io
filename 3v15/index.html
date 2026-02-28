@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<head>
+  <meta charset=UTF-8>
+  <meta name=viewport
+        content="width=device-width, user-scalable=no">
+  <title>3 vs 15</title>
+  <link rel=stylesheet
+        href="https://cdnjs.cloudflare.com/ajax/libs/Iosevka/6.0.0/iosevka/iosevka.min.css">
+  <style>body {color: #404040;
+      background-color: #ffffff;
+      box-sizing: border-box;
+      height:100vh;
+      position:relative}
+button {all: unset; cursor: pointer; user-select:none; touch-action: manipulation}
+.cell-b:enabled:hover {background-color: #e7e7e7}
+.cell-b:enabled:active {background-color: #d0d0d0}
+.cell-b:disabled {color: #aaaaaa; cursor: default}
+.stat-alert {color: #dc3545}
+@keyframes blink { 0% {opacity:1} 50% {opacity:1} 50.001% {opacity:0} 99.99% {opacity:0} 100% {opacity:1}}
+.stat-flash {
+    animation: blink 0.4s 2 linear;
+}
+.chess-grid {height: min(95vh,152vw); margin: auto; position:absolute; top:0; bottom:0; left:0; right:0;
+             aspect-ratio: 5 / 8; font-size: min(3vh, 4.8vw); font-family: 'Iosevka Web', monospace;
+             display: grid; grid: 5fr 5fr 5fr 5fr 2fr 10fr 10fr 10fr 10fr 10fr 3fr 5fr / 1fr 1fr 1fr 1fr 1fr}
+.ccenter {display: flex; justify-content: center; align-items: center}
+.cleft {display: flex; align-items: center}
+input[type='radio'] {position: absolute; opacity: 0; width: 0; height: 0;}
+input[type='checkbox'] {position: absolute; opacity: 0; width: 0; height: 0;}
+.label {margin-left: 2.25em;
+        width: 100%;
+        height: 1.2em;
+        cursor: pointer;}
+.radio-mark {height: 1em; cursor: pointer; aspect-ratio: 1 / 1; outline: 0.08em solid; border-radius:50%}
+input:checked + .radio-mark {background-color: currentColor}
+.cell-on {background-color: #404040; color: #ffffff}
+.cell-on:enabled:hover {background-color: #272727; color: #ffffff}
+.cell-on:enabled:active {background-color: #000000; color: #ffffff}
+.cell {position: relative}
+.cell-border {border: 0.08em solid #404040;}
+.border-nr {border-right-width: 0}
+.border-nb {border-bottom-width: 0}
+.piece {width:45%; height:45%; position:absolute;}
+.white-piece {width:45%; height:45%; color:#272727; position:absolute;
+              background-color:#ffffff; outline: 0.08em solid; border-radius: 50%}
+.black-piece {background-color:currentColor; position:absolute;
+              width:50%; height:50%; border-radius: 50%}
+.ghost-piece {width:20%; height:20%; position:absolute;
+              background-color:#dddddd; border-radius: 50%}
+.cell-sel {width:45%; height:45%; position:absolute;
+           color: #ffffff ; outline: 0.5em solid; border-radius: 50%}
+.cell:hover .cell-sel:has(+ .white-piece),
+.cell[sel] .cell-sel:has(+ .white-piece) {color:#e7e7e7}
+.cell:hover .cell-sel:has(+ .black-piece),
+.cell[sel] .cell-sel:has(+ .black-piece) {color:#d7d7d7}
+.cell:active .cell-sel:has(+ .white-piece)
+{color:#d0d0d0; outline: 0.45em solid}
+.cell:active .cell-sel:has(+ .black-piece)
+{color:#cccccc; outline: 0.45em solid}
+.cell:active .ghost-piece
+{width:18%; height:18%; background-color:#d7d7d7}</style>
+  <script>function sheepForward(sm, wm, cont) {
+    var em = ~(wm | sm);
+    var right = sm & em >> 1 & 16236015;
+    while (right) {
+        var lowBit = right & -right;
+        right ^= lowBit;
+        cont(sm + lowBit, wm, lowBit, lowBit << 1);
+    };
+    var leftTo = sm >> 1 & em & 16236015;
+    while (leftTo) {
+        var lowBit1 = leftTo & -leftTo;
+        leftTo ^= lowBit1;
+        cont(sm - lowBit1, wm, lowBit1 << 1, lowBit1);
+    };
+    var down = sm & em >> 5 & 1048575;
+    while (down) {
+        var lowBit1 = down & -down;
+        down ^= lowBit1;
+        cont(sm + lowBit1 * 31, wm, lowBit1, lowBit1 << 5);
+    };
+    var upTo = sm >> 5 & em;
+    while (upTo) {
+        var lowBit1 = upTo & -upTo;
+        upTo ^= lowBit1;
+        cont(sm - lowBit1 * 31, wm, lowBit1 << 5, lowBit1);
+    };
+};
+    function wolfForward(sm, wm, moveCont, capCont) {
+        var em = ~(wm | sm);
+        var right = wm & em >> 1 & 16236015;
+        var cap = right & sm >> 2 & 7576807;
+        while (right) {
+            var lowBit = right & -right;
+            right ^= lowBit;
+            moveCont(sm, wm + lowBit, lowBit, lowBit << 1);
+        };
+        while (cap) {
+            var lowBit1 = cap & -cap;
+            cap ^= lowBit1;
+            capCont(sm - lowBit1 * 4, wm + lowBit1 * 3, lowBit1, lowBit1 << 2);
+        };
+        var leftTo = wm >> 1 & em & 16236015;
+        var capTo = leftTo >> 1 & sm & 7576807;
+        while (leftTo) {
+            var lowBit1 = leftTo & -leftTo;
+            leftTo ^= lowBit1;
+            moveCont(sm, wm - lowBit1, lowBit1 << 1, lowBit1);
+        };
+        while (capTo) {
+            var lowBit1 = capTo & -capTo;
+            capTo ^= lowBit1;
+            capCont(sm - lowBit1, wm - lowBit1 * 3, lowBit1 << 2, lowBit1);
+        };
+        var down = wm & em >> 5 & 1048575;
+        var cap1 = down & sm >> 10 & 32767;
+        while (down) {
+            var lowBit2 = down & -down;
+            down ^= lowBit2;
+            moveCont(sm, wm + lowBit2 * 31, lowBit2, lowBit2 << 5);
+        };
+        while (cap1) {
+            var lowBit2 = cap1 & -cap1;
+            cap1 ^= lowBit2;
+            capCont(sm - lowBit2 * 1024, wm + lowBit2 * 1023, lowBit2, lowBit2 << 10);
+        };
+        var upTo = wm >> 5 & em;
+        var capTo2 = upTo >> 5 & sm;
+        while (upTo) {
+            var lowBit3 = upTo & -upTo;
+            upTo ^= lowBit3;
+            moveCont(sm, wm - lowBit3 * 31, lowBit3 << 5, lowBit3);
+        };
+        while (capTo2) {
+            var lowBit3 = capTo2 & -capTo2;
+            capTo2 ^= lowBit3;
+            capCont(sm - lowBit3, wm - lowBit3 * 1023, lowBit3 << 10, lowBit3);
+        };
+    };</script>
+  <script>var move = 'BLACK';
+    var flip = false;
+    var whiteMask = 0b0000000000111111111111111;
+    var blackMask = 0b0111000000000000000000000;
+    var selMask = 0;
+    var hist = [[whiteMask, blackMask]];
+    var histIndex = 0;
+    var won = null;
+
+    function flipMask(mask){
+        var ret = 0;
+        for (var i = 0; i < 5; i++) {
+            ret <<= 5;
+            ret |= mask & 0b11111;
+            mask >>= 5;
+        }
+        return ret;
+    }
+
+    stat2text = 'BLACK TO MOVE';
+    stat2alert = false;
+    stat2timer = null;
+    function writeStat2(text, alert){
+        const el = document.getElementById('stat2');
+        el.innerText = text;
+        stat2text = text;
+        stat2alert = alert;
+        if (alert) el.classList.add('stat-alert', 'stat-flash');
+        else el.classList.remove('stat-alert', 'stat-flash');
+    }
+    function flashStat2(text){
+        const el = document.getElementById('stat2');
+        el.classList.remove('stat-alert', 'stat-flash');
+        el.offsetWidth;
+        el.classList.add('stat-flash');
+        if (stat2timer) {
+            clearTimeout(stat2timer);
+            stat2timer = null;
+        }
+        el.innerText = text;
+        stat2timer = setTimeout(() => {
+            el.classList.remove('stat-flash');
+            writeStat2(stat2text, stat2alert);
+            stat2timer = null}, 1500);
+    }
+
+    function removePieces(cell){
+        for (child of [...cell.children]){
+            if (child.classList.contains('piece')
+                || child.classList.contains('black-piece')
+                || child.classList.contains('white-piece')
+                || child.classList.contains('ghost-piece'))
+                child.remove();
+        }
+    }
+
+    function addPiece(cell, cls){
+        const c = document.createElement("div");
+        c.className = cls;
+        cell.append(c);
+    }
+
+    function renderBoard() {
+        var whiteN = 0;
+        var moveMask = 0;
+        if (histIndex > 0) {
+            moveMask = hist[histIndex][0] ^ hist[histIndex - 1][0] | hist[histIndex][1] ^ hist[histIndex - 1][1];
+        }
+        for (var i = 0; i < 25; i++) {
+            const thisMask = 1 << i;
+            const el = document.getElementById('cell-'+i);
+            if (moveMask & thisMask)
+                el.classList.add("cell-moved");
+            else
+                el.classList.remove("cell-moved");
+            if(whiteMask & thisMask){
+                whiteN ++;
+                removePieces(el);
+                addPiece(el, "white-piece");
+            }
+            else if (blackMask & thisMask) {
+                removePieces(el);
+                addPiece(el, "black-piece");
+            }
+            else {
+                removePieces(el);
+            }
+            if (thisMask & selMask)
+                el.setAttribute("sel", "");
+            else
+                el.removeAttribute("sel");
+        }
+        var hasMove;
+        function moveCont(_, _, from, to) {
+            hasMove = true;
+            if (from == selMask) {
+                const el = document.getElementById('cell-' + Math.log2(to));
+                addPiece(el, "ghost-piece");
+            }
+        }
+        function capCont(_, _, from, to) {
+            hasMove = true;
+            if (from == selMask) {
+                const el = document.getElementById('cell-' + Math.log2(to));
+                el.setAttribute("sel", "");
+            }
+        }
+        won = null;
+        if (whiteN <= 3){
+            won = 'BLACK';
+        }
+        else if (move == 'WHITE'){
+            sheepForward(whiteMask, blackMask, moveCont);
+        }
+        else {
+            hasMove = false;
+            wolfForward(whiteMask, blackMask, moveCont, capCont);
+            if (!hasMove) {
+                won = 'WHITE';
+            }
+        }
+        if(won){
+            writeStat2(won + ' HAS WON', true);
+        }
+        else{
+            writeStat2(move + ' TO MOVE');
+        }
+        document.getElementById('btn-first').disabled = histIndex == 0;
+        document.getElementById('btn-back').disabled = histIndex == 0;
+        document.getElementById('btn-forward').disabled = histIndex == hist.length - 1;
+        document.getElementById('btn-last').disabled = histIndex == hist.length - 1;
+    }
+
+    function flipBoard(button){
+        whiteMask = flipMask(whiteMask);
+        blackMask = flipMask(blackMask);
+        selMask = flipMask(selMask);
+        flip = !flip;
+        if (flip) button.classList.add("cell-on");
+        else button.classList.remove("cell-on");
+        for(var i = 0; i < hist.length; i++){
+            hist[i] = [flipMask(hist[i][0]), flipMask(hist[i][1])];
+        }
+        renderBoard();
+    }
+
+    function histFirst(){
+        histIndex = 0;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = 'BLACK';
+        renderBoard();
+    }
+
+    function histBack() {
+        histIndex --;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == 'WHITE' ? 'BLACK' : 'WHITE';
+        renderBoard();
+    }
+
+    function histForward() {
+        histIndex ++;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == 'WHITE' ? 'BLACK' : 'WHITE';
+        renderBoard();
+    }
+
+    function histLast() {
+        histIndex = hist.length - 1;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == hist.length % 2 ? 'WHITE' : 'BLACK';
+        renderBoard();
+    }
+
+
+    function clickCell(bitpos) {
+        if (won) {
+            flashStat2('TAP << TO RESTART');
+            return;
+        }
+        const thisMask = 1 << bitpos;
+        function moveCont(nextwm, nextbm, from, to) {
+            if (from == selMask && to == thisMask) {
+                whiteMask = nextwm;
+                blackMask = nextbm;
+                hist.length = histIndex+1;
+                hist.push([whiteMask, blackMask]);
+                histIndex ++;
+                throw "DONE";
+            }
+        }
+        try{
+            if (move == 'WHITE') {
+                sheepForward(whiteMask, blackMask, moveCont);
+            }
+            else {
+                wolfForward(whiteMask, blackMask, moveCont, moveCont);
+            }
+        }
+        catch(e){
+            if (e == "DONE"){
+                move = move == 'WHITE'? 'BLACK': 'WHITE';
+                selMask = 0;
+                renderBoard();
+                return;
+            }
+        }
+        if (move == 'BLACK' && blackMask & thisMask ||
+            move == 'WHITE' && whiteMask & thisMask) {
+            selMask = 1 << bitpos;
+            renderBoard();
+        }
+        else {
+            msg = selMask ? 'ILLEGAL MOVE' : 'MUST SELECT ' + move;
+            selMask = 0;
+            renderBoard();
+            flashStat2(msg);
+        }
+    }
+
+    window.onload = function(){renderBoard();}
+    </script>
+</head>
+<html lang=en>
+  <body>
+    <div class=chess-grid>
+      <div class=cleft id=stat1
+           style="grid-area: 3 / 1 / span 1 / span 3">
+        LOREM IPSUM
+      </div>
+      <div class=cleft id=stat2
+           style="grid-area: 4 / 1 / span 1 / span 3">
+        TAP PIECE TO MOVE
+      </div>
+      <label class=cleft
+             style="grid-area: 1 / 4 / span 1 / span 2">
+        <div class=label>
+          LOREM
+        </div>
+        <input type=radio name=mode checked>
+        <div class=radio-mark></div></label>
+      <label class=cleft
+             style="grid-area: 2 / 4 / span 1 / span 2">
+        <div class=label>
+          IPSUM
+        </div>
+        <input type=radio name=mode checked>
+        <div class=radio-mark></div></label>
+      <label class=cleft
+             style="grid-area: 3 / 4 / span 1 / span 2">
+        <div class=label>
+          MINIMAX
+        </div>
+        <input type=radio name=mode>
+        <div class=radio-mark></div></label>
+      <label class=cleft
+             style="grid-area: 4 / 4 / span 1 / span 2">
+        <div class=label>
+          ENDGAME
+        </div>
+        <input type=radio name=mode>
+        <div class=radio-mark></div></label>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 6 / 1"
+        onclick=clickCell(0) id=cell-0>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 6 / 2"
+        onclick=clickCell(1) id=cell-1>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 6 / 3"
+        onclick=clickCell(2) id=cell-2>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 6 / 4"
+        onclick=clickCell(3) id=cell-3>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb ccenter cell-border cell"
+        style="grid-area: 6 / 5"
+        onclick=clickCell(4) id=cell-4>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 7 / 1"
+        onclick=clickCell(5) id=cell-5>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 7 / 2"
+        onclick=clickCell(6) id=cell-6>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 7 / 3"
+        onclick=clickCell(7) id=cell-7>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 7 / 4"
+        onclick=clickCell(8) id=cell-8>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb ccenter cell-border cell"
+        style="grid-area: 7 / 5"
+        onclick=clickCell(9) id=cell-9>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 8 / 1"
+        onclick=clickCell(10) id=cell-10>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 8 / 2"
+        onclick=clickCell(11) id=cell-11>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 8 / 3"
+        onclick=clickCell(12) id=cell-12>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 8 / 4"
+        onclick=clickCell(13) id=cell-13>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb ccenter cell-border cell"
+        style="grid-area: 8 / 5"
+        onclick=clickCell(14) id=cell-14>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 9 / 1"
+        onclick=clickCell(15) id=cell-15>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 9 / 2"
+        onclick=clickCell(16) id=cell-16>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 9 / 3"
+        onclick=clickCell(17) id=cell-17>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb border-nr ccenter cell-border cell"
+        style="grid-area: 9 / 4"
+        onclick=clickCell(18) id=cell-18>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nb ccenter cell-border cell"
+        style="grid-area: 9 / 5"
+        onclick=clickCell(19) id=cell-19>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nr ccenter cell-border cell"
+        style="grid-area: 10 / 1"
+        onclick=clickCell(20) id=cell-20>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nr ccenter cell-border cell"
+        style="grid-area: 10 / 2"
+        onclick=clickCell(21) id=cell-21>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nr ccenter cell-border cell"
+        style="grid-area: 10 / 3"
+        onclick=clickCell(22) id=cell-22>
+        <div class=cell-sel></div></button>
+      <button
+        class="border-nr ccenter cell-border cell"
+        style="grid-area: 10 / 4"
+        onclick=clickCell(23) id=cell-23>
+        <div class=cell-sel></div></button>
+      <button class="ccenter cell-border cell"
+              style="grid-area: 10 / 5"
+              onclick=clickCell(24) id=cell-24>
+        <div class=cell-sel></div></button>
+      <button
+        class="ccenter border-nr cell-border cell-b"
+        style="grid-area: 12 / 1" id=btn-first
+        onclick=histFirst()>&lt;&lt;</button>
+      <button
+        class="ccenter border-nr cell-border cell-b"
+        style="grid-area: 12 / 2" id=btn-back
+        onclick=histBack()>&lt;</button>
+      <button
+        class="ccenter border-nr cell-border cell-b"
+        style="grid-area: 12 / 3" id=btn-forward
+        onclick=histForward()>&gt;</button>
+      <button
+        class="ccenter border-nr cell-border cell-b"
+        style="grid-area: 12 / 4" id=btn-last
+        onclick=histLast()>&gt;&gt;</button>
+      <button class="ccenter cell-border cell-b"
+              style="grid-area: 12 / 5"
+              onclick=flipBoard(this)>FLIP</button>
+    </div>
+  </body>
+</html>

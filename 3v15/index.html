@@ -15,52 +15,57 @@ button {all: unset; cursor: pointer; user-select:none; touch-action: manipulatio
 .cell-b:enabled:hover {background-color: #e7e7e7}
 .cell-b:enabled:active {background-color: #d0d0d0}
 .cell-b:disabled {color: #aaaaaa; cursor: default}
+.cell-b-flash {animation: bBlink 1s infinite linear}
+.cell-b-flash:enabled:hover, .cell-b-flash:enabled:active {animation: none}
 .stat-alert {color: #dc3545}
 @keyframes blink { 0% {opacity:1} 50% {opacity:1} 50.001% {opacity:0} 99.99% {opacity:0} 100% {opacity:1}}
 .stat-flash {
     animation: blink 0.4s 2 linear;
 }
+@keyframes bBlink { 0%{background-color: #e7e7e7} 50%{background-color: #e7e7e7} 50.001%{background-color: #ffffff} 100%{background-color: #ffffff}}
 .chess-grid {height: min(95vh,152vw); margin: auto; position:absolute; top:0; bottom:0; left:0; right:0;
              aspect-ratio: 5 / 8; font-size: min(3vh, 4.8vw); font-family: 'Iosevka Web', monospace;
-             display: grid; grid: 5fr 5fr 5fr 5fr 2fr 10fr 10fr 10fr 10fr 10fr 3fr 5fr / 1fr 1fr 1fr 1fr 1fr}
+             display: grid;
+             grid: 5fr 5fr 5fr 0.8fr 5fr 2.1fr 10fr 10fr 10fr 10fr 10fr 2.1fr 5fr / 1fr 1fr 1fr 1fr 1fr}
 .ccenter {display: flex; justify-content: center; align-items: center}
 .cleft {display: flex; align-items: center}
+.cright {display: flex; align-items: center; justify-content: end}
 input[type='radio'] {position: absolute; opacity: 0; width: 0; height: 0;}
 input[type='checkbox'] {position: absolute; opacity: 0; width: 0; height: 0;}
-.label {margin-left: 0.5em;
+.label {margin-left: 1.0em;
         width: 100%;
         height: 1.2em;
         cursor: pointer;}
-.radio-mark {height: 1em; cursor: pointer; aspect-ratio: 1 / 1; outline: 0.08em solid; border-radius:50%}
+.radio-mark {height: 0.6em; cursor: pointer; aspect-ratio: 1 / 1; outline: 0.08em solid; border-radius:50%}
 input:checked + .radio-mark {background-color: currentColor}
 .cell-on {background-color: #404040; color: #ffffff}
 .cell-on:enabled:hover {background-color: #272727; color: #ffffff}
 .cell-on:enabled:active {background-color: #000000; color: #ffffff}
-    .cell {position: relative}
-    .cell-border {border: 0.08em solid #404040;}
-    .border-nr {border-right-width: 0}
-    .border-nb {border-bottom-width: 0}
-    .piece {width:45%; height:45%; position:absolute;}
-    .white-piece {width:45%; height:45%; color:#272727; position:absolute;
-                  background-color:#ffffff; outline: 0.08em solid; border-radius: 50%}
-    .black-piece {background-color:currentColor; position:absolute;
-                  width:50%; height:50%; border-radius: 50%}
-    .ghost-piece {width:20%; height:20%; position:absolute;
-                  background-color:#dddddd; border-radius: 50%}
-    button.cell {cursor: default}
-    button.cell-selable {cursor: pointer}
-    .cell-sel {width:45%; height:45%; position:absolute;
-               color: #ffffff ; outline: 0.5em solid; border-radius: 50%}
-    .cell-selable:hover .cell-sel:has(+ .white-piece),
-    .cell[sel] .cell-sel:has(+ .white-piece) {color:#e7e7e7}
-    .cell-selable:hover .cell-sel:has(+ .black-piece),
-    .cell[sel] .cell-sel:has(+ .black-piece) {color:#d7d7d7}
-    .cell:active .cell-sel:has(+ .white-piece)
-    {color:#d0d0d0; outline: 0.45em solid}
-    .cell:active .cell-sel:has(+ .black-piece)
-    {color:#cccccc; outline: 0.45em solid}
-    .cell:active .ghost-piece
-    {width:18%; height:18%; background-color:#d7d7d7}</style>
+.cell {position: relative}
+.cell-border {border: 0.08em solid #404040;}
+.border-nr {border-right-width: 0}
+.border-nb {border-bottom-width: 0}
+.piece {width:45%; height:45%; position:absolute;}
+.white-piece {width:45%; height:45%; color:#272727; position:absolute;
+              background-color:#ffffff; outline: 0.08em solid; border-radius: 50%}
+.black-piece {background-color:currentColor; position:absolute;
+              width:50%; height:50%; border-radius: 50%}
+.ghost-piece {width:20%; height:20%; position:absolute;
+              background-color:#dddddd; border-radius: 50%}
+button.cell {cursor: default}
+button.cell-selable {cursor: pointer}
+.cell-sel {width:45%; height:45%; position:absolute;
+           color: #ffffff ; outline: 0.5em solid; border-radius: 50%}
+.cell-selable:hover .cell-sel:has(+ .white-piece),
+.cell[sel] .cell-sel:has(+ .white-piece) {color:#e7e7e7}
+.cell-selable:hover .cell-sel:has(+ .black-piece),
+.cell[sel] .cell-sel:has(+ .black-piece) {color:#d7d7d7}
+.cell:active .cell-sel:has(+ .white-piece)
+{color:#d0d0d0; outline: 0.45em solid}
+.cell:active .cell-sel:has(+ .black-piece)
+{color:#cccccc; outline: 0.45em solid}
+.cell:active .ghost-piece
+{width:18%; height:18%; background-color:#d7d7d7}</style>
   <script>function logcount (n) {
     n = n - ((n >> 1) & 0x55555555)
     n = (n & 0x33333333) + ((n >> 2) & 0x33333333)
@@ -75,579 +80,626 @@ input:checked + .radio-mark {background-color: currentColor}
     };
     var leftTo = sm >> 1 & em & 16236015;
     while (leftTo) {
-        var lowBit110 = leftTo & -leftTo;
-        leftTo ^= lowBit110;
-        cont(sm - lowBit110, wm, lowBit110 << 1, lowBit110);
+        var lowBit174 = leftTo & -leftTo;
+        leftTo ^= lowBit174;
+        cont(sm - lowBit174, wm, lowBit174 << 1, lowBit174);
     };
     var down = sm & em >> 5 & 1048575;
-      while (down) {
-      var lowBit110 = down & -down;
-      down ^= lowBit110;
-      cont(sm + lowBit110 * 31, wm, lowBit110, lowBit110 << 5);
-                                                            };
-                                                            var upTo = sm >> 5 & em;
+    while (down) {
+        var lowBit174 = down & -down;
+        down ^= lowBit174;
+        cont(sm + lowBit174 * 31, wm, lowBit174, lowBit174 << 5);
+    };
+    var upTo = sm >> 5 & em;
+    while (upTo) {
+        var lowBit174 = upTo & -upTo;
+        upTo ^= lowBit174;
+        cont(sm - lowBit174 * 31, wm, lowBit174 << 5, lowBit174);
+    };
+};
+    function wolfForward(sm, wm, moveCont, capCont) {
+        var em = ~(wm | sm);
+        var right = wm & em >> 1 & 16236015;
+        var cap = right & sm >> 2 & 7576807;
+        while (right) {
+            var lowBit = right & -right;
+            right ^= lowBit;
+            moveCont(sm, wm + lowBit, lowBit, lowBit << 1);
+        };
+        while (cap) {
+            var lowBit174 = cap & -cap;
+            cap ^= lowBit174;
+            capCont(sm - lowBit174 * 4, wm + lowBit174 * 3, lowBit174, lowBit174 << 2);
+        };
+        var leftTo = wm >> 1 & em & 16236015;
+        var capTo = leftTo >> 1 & sm & 7576807;
+        while (leftTo) {
+            var lowBit174 = leftTo & -leftTo;
+            leftTo ^= lowBit174;
+            moveCont(sm, wm - lowBit174, lowBit174 << 1, lowBit174);
+        };
+        while (capTo) {
+            var lowBit174 = capTo & -capTo;
+            capTo ^= lowBit174;
+            capCont(sm - lowBit174, wm - lowBit174 * 3, lowBit174 << 2, lowBit174);
+        };
+        var down = wm & em >> 5 & 1048575;
+        var cap174 = down & sm >> 10 & 32767;
+        while (down) {
+            var lowBit175 = down & -down;
+            down ^= lowBit175;
+            moveCont(sm, wm + lowBit175 * 31, lowBit175, lowBit175 << 5);
+        };
+        while (cap174) {
+            var lowBit175 = cap174 & -cap174;
+            cap174 ^= lowBit175;
+            capCont(sm - lowBit175 * 1024, wm + lowBit175 * 1023, lowBit175, lowBit175 << 10);
+        };
+        var upTo = wm >> 5 & em;
+        var capTo175 = upTo >> 5 & sm;
         while (upTo) {
-        var lowBit110 = upTo & -upTo;
-        upTo ^= lowBit110;
-        cont(sm - lowBit110 * 31, wm, lowBit110 << 5, lowBit110);
-                                                   };
-                                                   };
-                                                   function wolfForward(sm, wm, moveCont, capCont) {
-                                                   var em = ~(wm | sm);
-                                                   var right = wm & em >> 1 & 16236015;
-          var cap = right & sm >> 2 & 7576807;
-          while (right) {
-          var lowBit = right & -right;
-          right ^= lowBit;
-          moveCont(sm, wm + lowBit, lowBit, lowBit << 1);
-          };
-          while (cap) {
-          var lowBit110 = cap & -cap;
-          cap ^= lowBit110;
-          capCont(sm - lowBit110 * 4, wm + lowBit110 * 3, lowBit110, lowBit110 << 2);
-                                                                                  };
-                                                                                  var leftTo = wm >> 1 & em & 16236015;
-            var capTo = leftTo >> 1 & sm & 7576807;
-            while (leftTo) {
-            var lowBit110 = leftTo & -leftTo;
-            leftTo ^= lowBit110;
-            moveCont(sm, wm - lowBit110, lowBit110 << 1, lowBit110);
-                                                      };
-                                                      while (capTo) {
-                                                      var lowBit110 = capTo & -capTo;
-                                                      capTo ^= lowBit110;
-                                                      capCont(sm - lowBit110, wm - lowBit110 * 3, lowBit110 << 2, lowBit110);
-                                                                                                               };
-                                                                                                               var down = wm & em >> 5 & 1048575;
-                                                      var cap110 = down & sm >> 10 & 32767;
-              while (down) {
-              var lowBit111 = down & -down;
-              down ^= lowBit111;
-              moveCont(sm, wm + lowBit111 * 31, lowBit111, lowBit111 << 5);
-                                                                        };
-                                                                        while (cap110) {
-                                                                        var lowBit111 = cap110 & -cap110;
-                                                                        cap110 ^= lowBit111;
-                                                                        capCont(sm - lowBit111 * 1024, wm + lowBit111 * 1023, lowBit111, lowBit111 << 10);
-                                                                                                                                                      };
-                                                                                                                                                      var upTo = wm >> 5 & em;
-                                                                        var capTo111 = upTo >> 5 & sm;
-                while (upTo) {
-                var lowBit112 = upTo & -upTo;
-                upTo ^= lowBit112;
-                moveCont(sm, wm - lowBit112 * 31, lowBit112 << 5, lowBit112);
-                                                               };
-                                                               while (capTo111) {
-                                                               var lowBit112 = capTo111 & -capTo111;
-                                                               capTo111 ^= lowBit112;
-                                                               capCont(sm - lowBit112, wm - lowBit112 * 1023, lowBit112 << 10, lowBit112);
-                                                                                                                           };
-                                                                                                                           };
-                                                                                                                           function heuristic(sm, wm) {
-                                                                                                                           var nMove;
-                                                                                                                           var consider;
-                                                                                                                           __PS_MV_REG = [];
-                                                                                                                           return (nMove = 0, ((consider = function (sm, wm) {
-                                                                                                                           return ++nMove;
-                                                                                                                           }, wolfForward(sm, wm, consider, consider)), 35 + nMove)) - 3 * logcount(sm);
-                                                                                                                           };
-                                                                                                                           function negamaxAb(sm, wm, depth, a, b, wolfToMove) {
-                                                                                                                           var h = function (sm, wm) {
-                                                                                                                           __PS_MV_REG = [];
-                                                                                                                           return (wolfToMove ? 1 : -1) * heuristic(sm, wm);
-                                                                                                                           };
-                                                                                                                           if (logcount(sm) <= 3) {
-                                                                                                                                               __PS_MV_REG = [];
-                                                                                                                                               return -10000 - depth;
-                                                                                                                                               } else if (0 === depth) {
-                                                                                                                                               __PS_MV_REG = [];
-                                                                                                                                               return h(sm, wm);
-                                                                                                                                               } else {
-                                                                                                                                               var candidates = [];
-                                                                                                                                               var value = -10000 - depth;
-                                                                                                                                               var enqueue = function (sm, wm) {
-                                                                                                                                               return candidates.push([sm, wm]);
-                                                                                                                                               };
-                                                                                                                                               if (wolfToMove) {
-                                                                                                                                               wolfForward(sm, wm, enqueue, enqueue);
-                                                                                                                                               } else {
-                                                                                                                                               sheepForward(sm, wm, enqueue);
-                                                                                                                                               };
-                                                                                                                                               candidates = candidates.sort(function (a, b) {
-                                                                                                                                               __PS_MV_REG = [];
-                                                                                                                                               return h(b[0], b[1]) - h(a[0], a[1]);
-                                                                                                                                               });
-                                                                                                                                               for (var c = null, _js_idx112 = 0; _js_idx112 < candidates.length; _js_idx112 += 1) {
-                                                                                                                                                                                               c = candidates[_js_idx112];
-                                                                                                                                                                                               value = Math.max(value, -negamaxAb(c[0], c[1], depth - 1, -b, -a, !wolfToMove));
-                                                                                                                                                                                               a = Math.max(a, value);
-                                                                                                                                                                                               if (a >= b) {
-                                                                                                                                               __PS_MV_REG = [];
-                                                                                                                                               return value;
-                                                                                                                                               };
-                                                                                                                                               };
-                                                                                                                                               __PS_MV_REG = [];
-                                                                                                                                               return value;
-                                                                                                                                               };
-                                                                                                                                               };
-                                                                                                                                               function negamaxMove(sm, wm, wolfToMove) {
-                                                                                                                                               var upto114;
-                                                                                                                                               var value = -10000;
-                                                                                                                                               var candidates = [];
-                                                                                                                                               var consider = function (sm, wm) {
-                                                                                                                                               var nv = -negamaxAb(sm, wm, 7, -10000, 10000, !wolfToMove);
-                                                                                                                                               if (value < nv) {
-                                                                                                                                                           value = nv;
-                                                                                                                                                           __PS_MV_REG = [];
-                                                                                                                                                           return candidates = [[sm, wm]];
-                                                                                                                                                           } else if (value === nv) {
-                                                                                                                                                           __PS_MV_REG = [];
-                                                                                                                                                           return candidates.push([sm, wm]);
-                                                                                                                                                           };
-                                                                                                                                                           };
-                                                                                                                                                           if (wolfToMove) {
-                                                                                                                                                           wolfForward(sm, wm, consider, consider);
-                                                                                                                                                           } else {
-                                                                                                                                                           sheepForward(sm, wm, consider);
-                                                                                                                                                           };
-                                                                                                                                                           var val113 = candidates[upto114 = candidates.length, upto114 % 1 ? upto114 * Math.random() : Math.floor(upto114 * Math.random())];
-                                                                                                                                                           __PS_MV_REG = [wolfToMove ? value : -value];
-                                                                                                                                                           return val113;
-                                                                                                                                                           };</script>
-                                                                                                                                                           <script>var move = 'BLACK';
-                                                                                                                                                             var flip = false;
-                                                                                                                                                             var whiteMask = 0b0000000000111111111111111;
-                                                                                                                                                             var blackMask = 0b0111000000000000000000000;
-                                                                                                                                                             var selMask = 0;
-                                                                                                                                                             var hist = [[whiteMask, blackMask]];
-                                                                                                                                                             var histIndex = 0;
-                                                                                                                                                             var won = null;
-                                                                                                                                                             var algoAuto = true;
+            var lowBit176 = upTo & -upTo;
+            upTo ^= lowBit176;
+            moveCont(sm, wm - lowBit176 * 31, lowBit176 << 5, lowBit176);
+        };
+        while (capTo175) {
+            var lowBit176 = capTo175 & -capTo175;
+            capTo175 ^= lowBit176;
+            capCont(sm - lowBit176, wm - lowBit176 * 1023, lowBit176 << 10, lowBit176);
+        };
+    };
+    function heuristic(sm, wm) {
+        var nMove;
+        var nCap;
+        __PS_MV_REG = [];
+        return (nMove = 0, nCap = 0, (wolfForward(sm, wm, function () {
+            return ++nMove;
+        }, function () {
+            return ++nCap;
+        }), 20 + nMove + nCap * 2)) - 2 * logcount(sm);
+    };
+    function negamaxAb(sm, wm, depth, a, b, wolfToMove) {
+        var h = function (sm, wm) {
+            __PS_MV_REG = [];
+            return (wolfToMove ? 1 : -1) * heuristic(sm, wm);
+        };
+        if (logcount(sm) <= 3) {
+            __PS_MV_REG = [];
+            return -10000 - depth;
+        } else if (0 === depth) {
+            __PS_MV_REG = [];
+            return h(sm, wm);
+        } else {
+            var candidates = [];
+            var value = -10000 - depth;
+            var enqueue = function (sm, wm) {
+                return candidates.push([sm, wm]);
+            };
+            if (wolfToMove) {
+                wolfForward(sm, wm, enqueue, enqueue);
+            } else {
+                sheepForward(sm, wm, enqueue);
+            };
+            candidates = candidates.sort(function (a, b) {
+                __PS_MV_REG = [];
+                return h(b[0], b[1]) - h(a[0], a[1]);
+            });
+            for (var c = null, _js_idx176 = 0; _js_idx176 < candidates.length; _js_idx176 += 1) {
+                c = candidates[_js_idx176];
+                value = Math.max(value, -negamaxAb(c[0], c[1], depth - 1, -b, -a, !wolfToMove));
+                a = Math.max(a, value);
+                if (a >= b) {
+                    __PS_MV_REG = [];
+                    return value;
+                };
+            };
+            __PS_MV_REG = [];
+            return value;
+        };
+    };
+    function negamaxMove(sm, wm, wolfToMove) {
+        var upto178;
+        var upto179;
+        var value = -20000;
+        var candidates = [];
+        var consider = function (sm, wm) {
+            var nv = -negamaxAb(sm, wm, 6, -10000, 10000, !wolfToMove);
+            if (value < nv) {
+                value = nv;
+                __PS_MV_REG = [];
+                return candidates = [[sm, wm]];
+            } else if (value === nv) {
+                __PS_MV_REG = [];
+                return candidates.push([sm, wm]);
+            };
+        };
+        if (wolfToMove) {
+            wolfForward(sm, wm, consider, consider);
+        } else {
+            sheepForward(sm, wm, consider);
+        };
+        var noRepeat = candidates.filter(function (c) {
+            return !hist.slice(0, histIndex + 1).some(function (c1) {
+                return c1[0] === c[0] && c1[1] === c[1];
+            });
+        });
+        var val177 = noRepeat.length > 0 ? noRepeat[upto178 = noRepeat.length, upto178 % 1 ? upto178 * Math.random() : Math.floor(upto178 * Math.random())] : candidates[upto179 = candidates.length, upto179 % 1 ? upto179 * Math.random() : Math.floor(upto179 * Math.random())];
+        __PS_MV_REG = [wolfToMove ? value : -value];
+        return val177;
+    };</script>
+  <script>var move = 'BLACK';
+    var flip = false;
+    var whiteMask = 0b0000000000111111111111111;
+    var blackMask = 0b0111000000000000000000000;
+    var selMask = 0;
+    var hist = [[whiteMask, blackMask]];
+    var histIndex = 0;
+    var won = null;
+    var algoAuto = true;
 
-                                                                                                                                                             function flipMask(mask){
-                                                                                                                                                                 var ret = 0;
-                                                                                                                                                                 for (var i = 0; i < 5; i++) {
-                                                                                                                                                                     ret <<= 5;
-                                                                                                                                                                     ret |= mask & 0b11111;
-                                                                                                                                                                     mask >>= 5;
-                                                                                                                                                                 }
-                                                                                                                                                                 return ret;
-                                                                                                                                                             }
+    function flipMask(mask){
+        var ret = 0;
+        for (var i = 0; i < 5; i++) {
+            ret <<= 5;
+            ret |= mask & 0b11111;
+            mask >>= 5;
+        }
+        return ret;
+    }
 
-                                                                                                                                                             stat2text = 'BLACK TO MOVE';
-                                                                                                                                                             stat2alert = false;
-                                                                                                                                                             stat2timer = null;
-                                                                                                                                                             function writeStat2(text, alert){
-                                                                                                                                                                 const el = document.getElementById('stat2');
-                                                                                                                                                                 el.innerText = text;
-                                                                                                                                                                 stat2text = text;
-                                                                                                                                                                 stat2alert = alert;
-                                                                                                                                                                 if (alert) el.classList.add('stat-alert', 'stat-flash');
-                                                                                                                                                                 else el.classList.remove('stat-alert', 'stat-flash');
-                                                                                                                                                             }
-                                                                                                                                                             function flashStat2(text){
-                                                                                                                                                                 const el = document.getElementById('stat2');
-                                                                                                                                                                 el.classList.remove('stat-alert', 'stat-flash');
-                                                                                                                                                                 el.offsetWidth;
-                                                                                                                                                                 el.classList.add('stat-flash');
-                                                                                                                                                                 if (stat2timer) {
-                                                                                                                                                                     clearTimeout(stat2timer);
-                                                                                                                                                                     stat2timer = null;
-                                                                                                                                                                 }
-                                                                                                                                                                 el.innerText = text;
-                                                                                                                                                                 stat2timer = setTimeout(() => {
-                                                                                                                                                                     el.classList.remove('stat-flash');
-                                                                                                                                                                     writeStat2(stat2text, stat2alert);
-                                                                                                                                                                     stat2timer = null}, 1500);
-                                                                                                                                                             }
+    stat2text = 'BLACK TO MOVE';
+    stat2alert = false;
+    stat2timer = null;
+    function writeStat2(text, alert){
+        const el = document.getElementById('stat2');
+        el.innerText = text;
+        stat2text = text;
+        stat2alert = alert;
+        if (alert) el.classList.add('stat-alert', 'stat-flash');
+        else el.classList.remove('stat-alert', 'stat-flash');
+    }
+    function flashStat2(text){
+        const el = document.getElementById('stat2');
+        el.classList.remove('stat-alert', 'stat-flash');
+        el.offsetWidth;
+        el.classList.add('stat-flash');
+        if (stat2timer) {
+            clearTimeout(stat2timer);
+            stat2timer = null;
+        }
+        el.innerText = text;
+        stat2timer = setTimeout(() => {
+            el.classList.remove('stat-flash');
+            writeStat2(stat2text, stat2alert);
+            stat2timer = null}, 1500);
+    }
+    function resetStat1(){
+        document.getElementById('stat1').innerText = 'MINIMAX DEPTH=6';
+    }
+    function removePieces(cell){
+        for (child of [...cell.children]){
+            if (child.classList.contains('piece')
+                || child.classList.contains('black-piece')
+                || child.classList.contains('white-piece')
+                || child.classList.contains('ghost-piece'))
+                child.remove();
+        }
+    }
 
-                                                                                                                                                             function removePieces(cell){
-                                                                                                                                                                 for (child of [...cell.children]){
-                                                                                                                                                                     if (child.classList.contains('piece')
-                                                                                                                                                                         || child.classList.contains('black-piece')
-                                                                                                                                                                         || child.classList.contains('white-piece')
-                                                                                                                                                                         || child.classList.contains('ghost-piece'))
-                                                                                                                                                                         child.remove();
-                                                                                                                                                                 }
-                                                                                                                                                             }
+    function addPiece(cell, cls){
+        const c = document.createElement("div");
+        c.className = cls;
+        cell.append(c);
+    }
 
-                                                                                                                                                             function addPiece(cell, cls){
-                                                                                                                                                                 const c = document.createElement("div");
-                                                                                                                                                                 c.className = cls;
-                                                                                                                                                                 cell.append(c);
-                                                                                                                                                             }
+    function renderBoard() {
+        var whiteN = 0;
+        var moveMask = 0;
+        if (histIndex > 0) {
+            moveMask = hist[histIndex][0] ^ hist[histIndex - 1][0] | hist[histIndex][1] ^ hist[histIndex - 1][1];
+        }
+        for (var i = 0; i < 25; i++) {
+            const thisMask = 1 << i;
+            const el = document.getElementById('cell-'+i);
+            if (moveMask & thisMask)
+                el.classList.add("cell-moved");
+            else
+                el.classList.remove("cell-moved");
+            if(whiteMask & thisMask){
+                whiteN ++;
+                removePieces(el);
+                addPiece(el, "white-piece");
+                if (move == 'WHITE')
+                    el.classList.add("cell-selable");
+                else
+                    el.classList.remove("cell-selable");
+            }
+            else if (blackMask & thisMask) {
+                removePieces(el);
+                addPiece(el, "black-piece");
+                if (move == 'BLACK')
+                    el.classList.add("cell-selable");
+                else
+                    el.classList.remove("cell-selable");
+            }
+            else {
+                removePieces(el);
+                el.classList.remove("cell-selable");
+            }
+            if (thisMask & selMask)
+                el.setAttribute("sel", "");
+            else
+                el.removeAttribute("sel");
+        }
+        var hasMove;
+        function moveCont(_, _, from, to) {
+            hasMove = true;
+            if (from == selMask) {
+                const el = document.getElementById('cell-' + Math.log2(to));
+                addPiece(el, "ghost-piece");
+                el.classList.add("cell-selable");
+            }
+        }
+        function capCont(_, _, from, to) {
+            hasMove = true;
+            if (from == selMask) {
+                const el = document.getElementById('cell-' + Math.log2(to));
+                el.setAttribute("sel", "");
+                el.classList.add("cell-selable");
+            }
+        }
+        won = null;
+        if (whiteN <= 3){
+            won = 'BLACK';
+        }
+        else if (move == 'WHITE'){
+            sheepForward(whiteMask, blackMask, moveCont);
+        }
+        else {
+            hasMove = false;
+            wolfForward(whiteMask, blackMask, moveCont, capCont);
+            if (!hasMove) {
+                won = 'WHITE';
+            }
+        }
+        if(won){
+            document.getElementById("btn-reset").classList.add("cell-b-flash");
+            writeStat2(won + ' HAS WON', true);
+        }
+        else{
+            document.getElementById("btn-reset").classList.remove("cell-b-flash");
+            writeStat2(move + ' TO MOVE');
+        }
+        document.getElementById('btn-first').disabled = histIndex == 0;
+        document.getElementById('btn-back').disabled = histIndex == 0;
+        document.getElementById('btn-forward').disabled = histIndex == hist.length - 1;
+        document.getElementById('btn-last').disabled = histIndex == hist.length - 1;
+    }
 
-                                                                                                                                                             function renderBoard() {
-                                                                                                                                                                 var whiteN = 0;
-                                                                                                                                                                 var moveMask = 0;
-                                                                                                                                                                 if (histIndex > 0) {
-                                                                                                                                                                     moveMask = hist[histIndex][0] ^ hist[histIndex - 1][0] | hist[histIndex][1] ^ hist[histIndex - 1][1];
-                                                                                                                                                                 }
-                                                                                                                                                                 for (var i = 0; i < 25; i++) {
-                                                                                                                                                                     const thisMask = 1 << i;
-                                                                                                                                                                     const el = document.getElementById('cell-'+i);
-                                                                                                                                                                     if (moveMask & thisMask)
-                                                                                                                                                                         el.classList.add("cell-moved");
-                                                                                                                                                                     else
-                                                                                                                                                                         el.classList.remove("cell-moved");
-                                                                                                                                                                     if(whiteMask & thisMask){
-                                                                                                                                                                         whiteN ++;
-                                                                                                                                                                         removePieces(el);
-                                                                                                                                                                         addPiece(el, "white-piece");
-                                                                                                                                                                         if (move == 'WHITE')
-                                                                                                                                                                             el.classList.add("cell-selable");
-                                                                                                                                                                         else
-                                                                                                                                                                             el.classList.remove("cell-selable");
-                                                                                                                                                                     }
-                                                                                                                                                                     else if (blackMask & thisMask) {
-                                                                                                                                                                         removePieces(el);
-                                                                                                                                                                         addPiece(el, "black-piece");
-                                                                                                                                                                         if (move == 'BLACK')
-                                                                                                                                                                             el.classList.add("cell-selable");
-                                                                                                                                                                         else
-                                                                                                                                                                             el.classList.remove("cell-selable");
-                                                                                                                                                                     }
-                                                                                                                                                                     else {
-                                                                                                                                                                         removePieces(el);
-                                                                                                                                                                         el.classList.remove("cell-selable");
-                                                                                                                                                                     }
-                                                                                                                                                                     if (thisMask & selMask)
-                                                                                                                                                                         el.setAttribute("sel", "");
-                                                                                                                                                                     else
-                                                                                                                                                                         el.removeAttribute("sel");
-                                                                                                                                                                 }
-                                                                                                                                                                 var hasMove;
-                                                                                                                                                                 function moveCont(_, _, from, to) {
-                                                                                                                                                                     hasMove = true;
-                                                                                                                                                                     if (from == selMask) {
-                                                                                                                                                                         const el = document.getElementById('cell-' + Math.log2(to));
-                                                                                                                                                                         addPiece(el, "ghost-piece");
-                                                                                                                                                                         el.classList.add("cell-selable");
-                                                                                                                                                                     }
-                                                                                                                                                                 }
-                                                                                                                                                                 function capCont(_, _, from, to) {
-                                                                                                                                                                     hasMove = true;
-                                                                                                                                                                     if (from == selMask) {
-                                                                                                                                                                         const el = document.getElementById('cell-' + Math.log2(to));
-                                                                                                                                                                         el.setAttribute("sel", "");
-                                                                                                                                                                         el.classList.add("cell-selable");
-                                                                                                                                                                     }
-                                                                                                                                                                 }
-                                                                                                                                                                 won = null;
-                                                                                                                                                                 if (whiteN <= 3){
-                                                                                                                                                                     won = 'BLACK';
-                                                                                                                                                                 }
-                                                                                                                                                                 else if (move == 'WHITE'){
-                                                                                                                                                                     sheepForward(whiteMask, blackMask, moveCont);
-                                                                                                                                                                 }
-                                                                                                                                                                 else {
-                                                                                                                                                                     hasMove = false;
-                                                                                                                                                                     wolfForward(whiteMask, blackMask, moveCont, capCont);
-                                                                                                                                                                     if (!hasMove) {
-                                                                                                                                                                         won = 'WHITE';
-                                                                                                                                                                     }
-                                                                                                                                                                 }
-                                                                                                                                                                 if(won){
-                                                                                                                                                                     writeStat2(won + ' HAS WON', true);
-                                                                                                                                                                 }
-                                                                                                                                                                 else{
-                                                                                                                                                                     writeStat2(move + ' TO MOVE');
-                                                                                                                                                                 }
-                                                                                                                                                                 document.getElementById('btn-first').disabled = histIndex == 0;
-                                                                                                                                                                 document.getElementById('btn-back').disabled = histIndex == 0;
-                                                                                                                                                                 document.getElementById('btn-forward').disabled = histIndex == hist.length - 1;
-                                                                                                                                                                 document.getElementById('btn-last').disabled = histIndex == hist.length - 1;
-                                                                                                                                                             }
+    function flipBoard(button){
+        whiteMask = flipMask(whiteMask);
+        blackMask = flipMask(blackMask);
+        selMask = flipMask(selMask);
+        flip = !flip;
+        if (flip) button.classList.add("cell-on");
+        else button.classList.remove("cell-on");
+        for(var i = 0; i < hist.length; i++){
+            hist[i] = [flipMask(hist[i][0]), flipMask(hist[i][1])];
+        }
+        renderBoard();
+    }
 
-                                                                                                                                                             function flipBoard(button){
-                                                                                                                                                                 whiteMask = flipMask(whiteMask);
-                                                                                                                                                                 blackMask = flipMask(blackMask);
-                                                                                                                                                                 selMask = flipMask(selMask);
-                                                                                                                                                                 flip = !flip;
-                                                                                                                                                                 if (flip) button.classList.add("cell-on");
-                                                                                                                                                                 else button.classList.remove("cell-on");
-                                                                                                                                                                 for(var i = 0; i < hist.length; i++){
-                                                                                                                                                                     hist[i] = [flipMask(hist[i][0]), flipMask(hist[i][1])];
-                                                                                                                                                                 }
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function histFirst(){
+        histIndex = 0;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = 'BLACK';
+        renderBoard();
+    }
 
-                                                                                                                                                             function histFirst(){
-                                                                                                                                                                 histIndex = 0;
-                                                                                                                                                                 selMask = 0;
-                                                                                                                                                                 [whiteMask, blackMask] = hist[histIndex];
-                                                                                                                                                                 move = 'BLACK';
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function histBack() {
+        histIndex --;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == 'WHITE' ? 'BLACK' : 'WHITE';
+        renderBoard();
+    }
 
-                                                                                                                                                             function histBack() {
-                                                                                                                                                                 histIndex --;
-                                                                                                                                                                 selMask = 0;
-                                                                                                                                                                 [whiteMask, blackMask] = hist[histIndex];
-                                                                                                                                                                 move = move == 'WHITE' ? 'BLACK' : 'WHITE';
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function histForward() {
+        histIndex ++;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == 'WHITE' ? 'BLACK' : 'WHITE';
+        renderBoard();
+    }
 
-                                                                                                                                                             function histForward() {
-                                                                                                                                                                 histIndex ++;
-                                                                                                                                                                 selMask = 0;
-                                                                                                                                                                 [whiteMask, blackMask] = hist[histIndex];
-                                                                                                                                                                 move = move == 'WHITE' ? 'BLACK' : 'WHITE';
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function histLast() {
+        histIndex = hist.length - 1;
+        selMask = 0;
+        [whiteMask, blackMask] = hist[histIndex];
+        move = move == hist.length % 2 ? 'WHITE' : 'BLACK';
+        renderBoard();
+    }
 
-                                                                                                                                                             function histLast() {
-                                                                                                                                                                 histIndex = hist.length - 1;
-                                                                                                                                                                 selMask = 0;
-                                                                                                                                                                 [whiteMask, blackMask] = hist[histIndex];
-                                                                                                                                                                 move = move == hist.length % 2 ? 'WHITE' : 'BLACK';
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function commitMove(wm, bm){
+        whiteMask = wm;
+        blackMask = bm;
+        hist.length = histIndex + 1;
+        hist.push([whiteMask, blackMask]);
+        histIndex++;
+        move = move == 'WHITE' ? 'BLACK' : 'WHITE';
+        selMask = 0;
+        renderBoard();
+    }
 
-                                                                                                                                                             function commitMove(wm, bm){
-                                                                                                                                                                 whiteMask = wm;
-                                                                                                                                                                 blackMask = bm;
-                                                                                                                                                                 hist.length = histIndex + 1;
-                                                                                                                                                                 hist.push([whiteMask, blackMask]);
-                                                                                                                                                                 histIndex++;
-                                                                                                                                                                 move = move == 'WHITE' ? 'BLACK' : 'WHITE';
-                                                                                                                                                                 selMask = 0;
-                                                                                                                                                                 renderBoard();
-                                                                                                                                                             }
+    function clickCell(bitpos) {
+        if (won) {
+            flashStat2('TAP RESET TO RESTART');
+            return;
+        }
+        const thisMask = 1 << bitpos;
+        function moveCont(nextwm, nextbm, from, to) {
+            if (from == selMask && to == thisMask) {
+                commitMove(nextwm, nextbm);
+                throw "DONE";
+            }
+        }
+        try{
+            if (move == 'WHITE') {
+                sheepForward(whiteMask, blackMask, moveCont);
+            }
+            else {
+                wolfForward(whiteMask, blackMask, moveCont, moveCont);
+            }
+        }
+        catch(e){
+            if (e == "DONE") {
+                if (algoAuto) algoRun();
+                return;}
+        }
+        if (move == 'BLACK' && blackMask & thisMask ||
+            move == 'WHITE' && whiteMask & thisMask) {
+            selMask = selMask == thisMask ? 0 : thisMask;
+            renderBoard();
+        }
+        else {
+            msg = !selMask || thisMask & (whiteMask | blackMask) ?
+                'MUST SELECT ' + move : 'ILLEGAL MOVE';
+            selMask = 0;
+            renderBoard();
+            flashStat2(msg);
+        }
+    }
 
-                                                                                                                                                             function clickCell(bitpos) {
-                                                                                                                                                                 if (won) {
-                                                                                                                                                                     flashStat2('TAP << TO RESTART');
-                                                                                                                                                                     return;
-                                                                                                                                                                 }
-                                                                                                                                                                 const thisMask = 1 << bitpos;
-                                                                                                                                                                 function moveCont(nextwm, nextbm, from, to) {
-                                                                                                                                                                     if (from == selMask && to == thisMask) {
-                                                                                                                                                                         commitMove(nextwm, nextbm);
-                                                                                                                                                                         throw "DONE";
-                                                                                                                                                                     }
-                                                                                                                                                                 }
-                                                                                                                                                                 try{
-                                                                                                                                                                     if (move == 'WHITE') {
-                                                                                                                                                                         sheepForward(whiteMask, blackMask, moveCont);
-                                                                                                                                                                     }
-                                                                                                                                                                     else {
-                                                                                                                                                                         wolfForward(whiteMask, blackMask, moveCont, moveCont);
-                                                                                                                                                                     }
-                                                                                                                                                                 }
-                                                                                                                                                                 catch(e){
-                                                                                                                                                                     if (e == "DONE") {
-                                                                                                                                                                         if (algoAuto) algoRun();
-                                                                                                                                                                         return;}
-                                                                                                                                                                 }
-                                                                                                                                                                 if (move == 'BLACK' && blackMask & thisMask ||
-                                                                                                                                                                     move == 'WHITE' && whiteMask & thisMask) {
-                                                                                                                                                                     selMask = selMask == thisMask ? 0 : thisMask;
-                                                                                                                                                                     renderBoard();
-                                                                                                                                                                 }
-                                                                                                                                                                 else {
-                                                                                                                                                                     msg = !selMask || thisMask & (whiteMask | blackMask) ?
-                                                                                                                                                                         'MUST SELECT ' + move : 'ILLEGAL MOVE';
-                                                                                                                                                                     selMask = 0;
-                                                                                                                                                                     renderBoard();
-                                                                                                                                                                     flashStat2(msg);
-                                                                                                                                                                 }
-                                                                                                                                                             }
+    function negamaxRun(){
+        document.getElementById('stat1').innerText = 'MINIMAXING...';
+        setTimeout(function(){
+            commitMove(...negamaxMove(whiteMask, blackMask, move == 'BLACK'));
+            document.getElementById('stat1').innerText = 'MMX4 EVAL = ' + __PS_MV_REG[0];
+            renderBoard();},
+                   0);
+    }
 
-                                                                                                                                                             function negamaxRun(){
-                                                                                                                                                                 document.getElementById('stat1').innerText = 'MINIMAXING...';
-                                                                                                                                                                 setTimeout(function(){
-                                                                                                                                                                     commitMove(...negamaxMove(whiteMask, blackMask, move == 'BLACK'));
-                                                                                                                                                                     document.getElementById('stat1').innerText = 'EVAL: ' + __PS_MV_REG[0];
-                                                                                                                                                                     renderBoard();},
-                                                                                                                                                                            0);
-                                                                                                                                                             }
+    function algoRun(){
+        negamaxRun();
+    }
 
-                                                                                                                                                             function algoRun(){
-                                                                                                                                                                 negamaxRun();
-                                                                                                                                                             }
+    function toggleAlgoAuto(button){
+        algoAuto = !algoAuto;
+        if (algoAuto) algoRun();
+        if (algoAuto) button.classList.add("cell-on");
+        else button.classList.remove("cell-on");
+    }
 
-                                                                                                                                                             function toggleAlgoAuto(button){
-                                                                                                                                                                 algoAuto = !algoAuto;
-                                                                                                                                                                 if (algoAuto) algoRun();
-                                                                                                                                                                 if (algoAuto) button.classList.add("cell-on");
-                                                                                                                                                                 else button.classList.remove("cell-on");
-                                                                                                                                                             }
+    function reset(){
+        move = 'BLACK';
+        whiteMask = 0b0000000000111111111111111;
+        blackMask = 0b0111000000000000000000000;
+        selMask = 0;
+        hist = [[whiteMask, blackMask]];
+        histIndex = 0;
+        resetStat1();
+        renderBoard();
+    }
 
-                                                                                                                                                             window.onload = function(){renderBoard();}
-                                                                                                                                                             </script>
+    window.onload = function(){renderBoard();}
+  </script>
 </head>
 <html lang=en>
   <body>
     <div class=chess-grid>
       <div class=cleft id=stat1
-           style="grid-area: 3 / 1 / span 1 / span 3">
-        LOREM IPSUM
+           style="grid-area: 2 / 1 / span 1 / span 3">
+        MINIMAX DEPTH = 6
       </div>
       <div class=cleft id=stat2
-           style="grid-area: 4 / 1 / span 1 / span 3">
+           style="grid-area: 3 / 1 / span 1 / span 3">
         BLACK TO MOVE
       </div>
-      <div class=ccenter
+      <div class=cright
            style="grid-area: 1 / 4 / span 1 / span 2">
-        ALGO SELECT
+        SELECT PROGRAM
       </div>
       <button
-        class="ccenter border-nb cell-border cell-b"
-        style="grid-area: 2 / 4 / span 1 / span 2">MINIMAX</button>
-      <button
-        class="ccenter border-nb cell-border cell-b"
-        style="grid-area: 3 / 4 / span 1 / span 2">ENDGAME</button>
+        class="ccenter border-nr cell-border cell-b"
+        style="grid-area: 5 / 1" id=btn-reset
+        onclick=reset()>RESET</button>
+      <button class="ccenter cell-border cell-b"
+              style="grid-area: 5 / 2">EDIT</button>
       <button
         class="ccenter border-nr cell-border cell-b"
-        style="grid-area: 4 / 4" id=btn-algo-move
+        style="grid-area: 5 / 4" id=btn-algo-move
         onclick=algoRun()>MOVE</button>
       <button
         class="ccenter cell-border cell-b cell-on"
-        style="grid-area: 4 / 5"
+        style="grid-area: 5 / 5"
         onclick=toggleAlgoAuto(this)>AUTO</button>
+      <label class=cleft style="grid-area: 2 / 4">
+        <div class=label>
+          MMX4
+        </div>
+        <input type=radio name=mode>
+        <div class=radio-mark></div></label>
+      <label class=cleft style="grid-area: 2 / 5">
+        <div class=label>
+          MMX6
+        </div>
+        <input type=radio name=mode checked>
+        <div class=radio-mark></div></label>
+      <label class=cleft style="grid-area: 3 / 4">
+        <div class=label>
+          EGTB
+        </div>
+        <input type=radio name=mode>
+        <div class=radio-mark></div></label>
+      <label class=cleft style="grid-area: 3 / 5">
+        <div class=label>
+          EVIL
+        </div>
+        <input type=radio name=mode>
+        <div class=radio-mark></div></label>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 6 / 1"
+        style="grid-area: 7 / 1"
         onclick=clickCell(0) id=cell-0>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 6 / 2"
+        style="grid-area: 7 / 2"
         onclick=clickCell(1) id=cell-1>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 6 / 3"
+        style="grid-area: 7 / 3"
         onclick=clickCell(2) id=cell-2>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 6 / 4"
+        style="grid-area: 7 / 4"
         onclick=clickCell(3) id=cell-3>
         <div class=cell-sel></div></button>
       <button
         class="border-nb ccenter cell-border cell"
-        style="grid-area: 6 / 5"
+        style="grid-area: 7 / 5"
         onclick=clickCell(4) id=cell-4>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 7 / 1"
+        style="grid-area: 8 / 1"
         onclick=clickCell(5) id=cell-5>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 7 / 2"
+        style="grid-area: 8 / 2"
         onclick=clickCell(6) id=cell-6>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 7 / 3"
+        style="grid-area: 8 / 3"
         onclick=clickCell(7) id=cell-7>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 7 / 4"
+        style="grid-area: 8 / 4"
         onclick=clickCell(8) id=cell-8>
         <div class=cell-sel></div></button>
       <button
         class="border-nb ccenter cell-border cell"
-        style="grid-area: 7 / 5"
+        style="grid-area: 8 / 5"
         onclick=clickCell(9) id=cell-9>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 8 / 1"
+        style="grid-area: 9 / 1"
         onclick=clickCell(10) id=cell-10>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 8 / 2"
+        style="grid-area: 9 / 2"
         onclick=clickCell(11) id=cell-11>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 8 / 3"
+        style="grid-area: 9 / 3"
         onclick=clickCell(12) id=cell-12>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 8 / 4"
+        style="grid-area: 9 / 4"
         onclick=clickCell(13) id=cell-13>
         <div class=cell-sel></div></button>
       <button
         class="border-nb ccenter cell-border cell"
-        style="grid-area: 8 / 5"
+        style="grid-area: 9 / 5"
         onclick=clickCell(14) id=cell-14>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 9 / 1"
+        style="grid-area: 10 / 1"
         onclick=clickCell(15) id=cell-15>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 9 / 2"
+        style="grid-area: 10 / 2"
         onclick=clickCell(16) id=cell-16>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 9 / 3"
+        style="grid-area: 10 / 3"
         onclick=clickCell(17) id=cell-17>
         <div class=cell-sel></div></button>
       <button
         class="border-nb border-nr ccenter cell-border cell"
-        style="grid-area: 9 / 4"
+        style="grid-area: 10 / 4"
         onclick=clickCell(18) id=cell-18>
         <div class=cell-sel></div></button>
       <button
         class="border-nb ccenter cell-border cell"
-        style="grid-area: 9 / 5"
+        style="grid-area: 10 / 5"
         onclick=clickCell(19) id=cell-19>
         <div class=cell-sel></div></button>
       <button
         class="border-nr ccenter cell-border cell"
-        style="grid-area: 10 / 1"
+        style="grid-area: 11 / 1"
         onclick=clickCell(20) id=cell-20>
         <div class=cell-sel></div></button>
       <button
         class="border-nr ccenter cell-border cell"
-        style="grid-area: 10 / 2"
+        style="grid-area: 11 / 2"
         onclick=clickCell(21) id=cell-21>
         <div class=cell-sel></div></button>
       <button
         class="border-nr ccenter cell-border cell"
-        style="grid-area: 10 / 3"
+        style="grid-area: 11 / 3"
         onclick=clickCell(22) id=cell-22>
         <div class=cell-sel></div></button>
       <button
         class="border-nr ccenter cell-border cell"
-        style="grid-area: 10 / 4"
+        style="grid-area: 11 / 4"
         onclick=clickCell(23) id=cell-23>
         <div class=cell-sel></div></button>
       <button class="ccenter cell-border cell"
-              style="grid-area: 10 / 5"
+              style="grid-area: 11 / 5"
               onclick=clickCell(24) id=cell-24>
         <div class=cell-sel></div></button>
       <button
         class="ccenter border-nr cell-border cell-b"
-        style="grid-area: 12 / 1" id=btn-first
+        style="grid-area: 13 / 1" id=btn-first
         onclick=histFirst()>&lt;&lt;</button>
       <button
         class="ccenter border-nr cell-border cell-b"
-        style="grid-area: 12 / 2" id=btn-back
+        style="grid-area: 13 / 2" id=btn-back
         onclick=histBack()>&lt;</button>
       <button
         class="ccenter border-nr cell-border cell-b"
-        style="grid-area: 12 / 3" id=btn-forward
+        style="grid-area: 13 / 3" id=btn-forward
         onclick=histForward()>&gt;</button>
       <button
         class="ccenter border-nr cell-border cell-b"
-        style="grid-area: 12 / 4" id=btn-last
+        style="grid-area: 13 / 4" id=btn-last
         onclick=histLast()>&gt;&gt;</button>
       <button class="ccenter cell-border cell-b"
-              style="grid-area: 12 / 5"
+              style="grid-area: 13 / 5"
               onclick=flipBoard(this)>FLIP</button>
     </div>
   </body>

@@ -1,8 +1,10 @@
 <!doctype html>
 <html>
   <head>
+    <link rel=stylesheet
+          href="https://cdnjs.cloudflare.com/ajax/libs/Iosevka/6.0.0/iosevka/iosevka.min.css">
     <style>
-      body {font-family:monospace;background:black;
+      body {font-family:'Iosevka Web',monospace;background:#000000;
             color:rgba(140,174,242,0.5);text-shadow:0 0 4px rgba(140,174,242,0.5)}
       h1 {font-weight:normal;font-size:2.5rem;text-align:center}
       h2 {font-weight:normal;font-size:1.5rem;}
@@ -46,11 +48,11 @@
           let y = yOffset+Math.floor((rect.bottom-event.clientY)/rect.height*4);
           currentSnow=[x,y];
           loadSnow([x,y]);
-          document.getElementById("snow-container").scrollIntoView({behavior:"smooth"});
+          document.getElementById("snow-container").scrollIntoView({block:"nearest", behavior:"smooth"});
       }
     </script>
   </head>
-  <body style="max-width:48rem;margin:auto">
+  <body style="max-width:48rem;margin:auto;padding:2rem">
     <h1>Gallery of Algorithmic Snowflakes</h1>
     <p>Click on them to look closer!</p>
     <div style="display:flex;align-items:center;flex-wrap:wrap">
